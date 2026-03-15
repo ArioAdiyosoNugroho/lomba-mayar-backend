@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportComment;
 use App\Models\ReportVote;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -100,7 +102,18 @@ class ReportController extends Controller
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('reports', 'public');
+            try {
+                // Upload ke Cloudinary — tersimpan permanen, tidak hilang saat redeploy
+                $result    = cloudinary()->upload($request->file('photo')->getRealPath(), [
+                    'folder'          => 'forest-guardian/reports',
+                    'resource_type'   => 'image',
+                    'transformation'  => [['quality' => 'auto', 'fetch_format' => 'auto']],
+                ]);
+                $photoPath = $result->getSecurePath(); // URL https:// langsung
+            } catch (Exception $e) {
+                Log::error('Cloudinary upload error: ' . $e->getMessage());
+                return response()->json(['message' => 'Gagal upload foto.'], 500);
+            }
         }
 
         $report = Report::create([

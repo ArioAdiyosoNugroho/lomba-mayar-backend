@@ -52,9 +52,12 @@ class Report extends Model
     public function getPhotoUrlAttribute(): ?string
     {
         if (!$this->photo_path) return null;
-        // Force HTTPS supaya tidak Mixed Content error di production
-        $url = asset('storage/' . $this->photo_path);
-        return str_replace('http://', 'https://', $url);
+        // Cloudinary sudah return full https:// URL
+        // Kalau masih path lama (sebelum Cloudinary), pakai asset()
+        if (str_starts_with($this->photo_path, 'http')) {
+            return $this->photo_path;
+        }
+        return str_replace('http://', 'https://', asset('storage/' . $this->photo_path));
     }
 
     public function getReportTypeLabelAttribute(): string
