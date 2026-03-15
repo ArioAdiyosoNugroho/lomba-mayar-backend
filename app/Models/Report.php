@@ -52,7 +52,9 @@ class Report extends Model
     public function getPhotoUrlAttribute(): ?string
     {
         if (!$this->photo_path) return null;
-        return asset('storage/' . $this->photo_path);
+        // Force HTTPS supaya tidak Mixed Content error di production
+        $url = asset('storage/' . $this->photo_path);
+        return str_replace('http://', 'https://', $url);
     }
 
     public function getReportTypeLabelAttribute(): string
