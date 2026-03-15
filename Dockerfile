@@ -48,3 +48,4 @@ EXPOSE 80
 
 # Jalankan server dengan port dinamis dari Railway
 CMD php artisan serve --host=0.0.0.0 --port=${PORT:-80}
+ 
