@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportComment;
 use App\Models\ReportVote;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -103,16 +101,22 @@ class ReportController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             try {
-                // Upload ke Cloudinary — tersimpan permanen, tidak hilang saat redeploy
-                $result    = cloudinary()->upload($request->file('photo')->getRealPath(), [
-                    'folder'          => 'forest-guardian/reports',
-                    'resource_type'   => 'image',
-                    'transformation'  => [['quality' => 'auto', 'fetch_format' => 'auto']],
+                $cloudinary = new \Cloudinary\Cloudinary([
+                    'cloud' => [
+                        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                        'api_key'    => env('CLOUDINARY_API_KEY'),
+                        'api_secret' => env('CLOUDINARY_API_SECRET'),
+                    ],
+                    'url' => ['secure' => true],
                 ]);
-                $photoPath = $result->getSecurePath(); // URL https:// langsung
-            } catch (Exception $e) {
-                Log::error('Cloudinary upload error: ' . $e->getMessage());
-                return response()->json(['message' => 'Gagal upload foto.'], 500);
+                $upload    = $cloudinary->uploadApi()->upload(
+                    $request->file('photo')->getRealPath(),
+                    ['folder' => 'forest-guardian/reports', 'resource_type' => 'image']
+                );
+                $photoPath = $upload['secure_url'];
+            } catch (\Exception $e) {
+                \Log::error('Cloudinary upload error: ' . $e->getMessage());
+                return response()->json(['message' => 'Gagal upload foto: ' . $e->getMessage()], 500);
             }
         }
 
