@@ -245,6 +245,24 @@ class ReportController extends Controller
         ], 201);
     }
 
+        public function destroyComment(Request $request, $id, $commentId)
+    {
+        $comment = ReportComment::where('id', $commentId)
+            ->where('report_id', $id)
+            ->firstOrFail();
+
+        $user = $request->user();
+
+        // hanya pemilik komentar atau admin yang bisa hapus
+        if (!$user->isAdmin() && $comment->user_id !== $user->id) {
+            return response()->json(['message' => 'Tidak diizinkan.'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(['message' => 'Komentar dihapus.', 'comment_id' => (int) $commentId]);
+    }
+
     // -------------------------------------------------------
     // GET /stats — dashboard stats
     // -------------------------------------------------------
