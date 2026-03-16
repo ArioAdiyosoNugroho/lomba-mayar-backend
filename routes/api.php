@@ -33,6 +33,8 @@ Route::get('/reports',          [ReportController::class, 'index']);
 Route::get('/reports/map',      [ReportController::class, 'mapPins']);
 Route::get('/reports/stats',    [ReportController::class, 'stats']);
 Route::get('/reports/{id}',     [ReportController::class, 'show']);
+Route::delete('/reports/{id}/comments/{commentId}', [ReportController::class, 'destroyComment'])->middleware('auth:sanctum');
+
 
 Route::get('/donations/leaderboard', [DonationController::class, 'leaderboard']);
 Route::get('/donations/summary',     [DonationController::class, 'summary']);
